@@ -1,0 +1,19 @@
+import React from 'react';
+import Topbar from '../layout/Topbar';
+import Navbar from '../common/Navbar'; 
+
+const Header = () => {
+  return (
+    <header className="border-b border-gray-200 shadow-md">
+     
+      <Topbar />
+
+     
+      <Navbar /> 
+
+  
+    </header>
+  );
+};
+
+export default Header;
