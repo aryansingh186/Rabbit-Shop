@@ -15,16 +15,29 @@ const adminOrderRoutes = require("./routes/AdminOrderRoutes");
 
 const app = express();
 
+// JSON middleware
 app.use(express.json());
-app.use(cors());
+
+
+app.use(
+  cors({
+    origin: [
+      "https://rabbit-shop-pb3b.vercel.app", 
+      "http://localhost:5173" 
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+
 
 connectDB();
 
-// Test
 app.get("/", (req, res) => {
-  res.send("Welcome to Rabbit API");
+  res.send("Welcome to Rabbit API 🚀");
 });
 
+// API Routes
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
@@ -32,17 +45,18 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/subscribe", subscriberRoutes);
 
+// Admin Routes
 app.use("/api/Admin/users", AdminRoutes);
 app.use("/api/admin/products", productAdminRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
 
-// Export for Vercel
+
 module.exports = app;
 
-// Local development
+// Local server 
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 9000;
   app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running at http://localhost:${PORT}`);
   });
 }
