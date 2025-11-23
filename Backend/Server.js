@@ -22,7 +22,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "https://rabbit-shop-pb3b.vercel.app", 
+      "https://rabbit-shop-zeta.vercel.app", 
       "http://localhost:5173" 
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
