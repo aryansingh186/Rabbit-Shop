@@ -1,35 +1,80 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { toast, Toaster } from "sonner";
-import { FaTrash, FaEdit, FaSpinner, FaPlus, FaSearch } from "react-icons/fa";
-import axios from "axios";
 
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [priceFilter, setPriceFilter] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [notification, setNotification] = useState(null);
 
-  // Fetch Products
+  // Show notification
+  const showNotification = (message, type = "success") => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  // Check Admin Access
   useEffect(() => {
-    fetchProducts();
+    checkAdminAccess();
   }, []);
 
-  const fetchProducts = async () => {
+  const checkAdminAccess = async () => {
     try {
-      setLoading(true);
       const token = localStorage.getItem("userToken");
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/products`,
+      
+      if (!token) {
+        showNotification("Please login to access this page", "error");
+        // In real app: navigate to login
+        setCheckingAuth(false);
+        return;
+      }
+
+      // Verify admin role from backend
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/auth/verify`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log("✅ Products fetched:", response.data);
-      setProducts(response.data);
+
+      const data = await response.json();
+
+      if (!response.ok || data.role !== "admin") {
+        showNotification("Access Denied: Admin privileges required", "error");
+        setCheckingAuth(false);
+        return;
+      }
+
+      setIsAdmin(true);
+      setCheckingAuth(false);
+      fetchProducts();
+    } catch (error) {
+      console.error("❌ Auth check failed:", error);
+      showNotification("Authentication failed", "error");
+      setCheckingAuth(false);
+    }
+  };
+
+  // Fetch Products
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("userToken");
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/products`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      
+      const data = await response.json();
+      console.log("✅ Products fetched:", data);
+      setProducts(data);
     } catch (error) {
       console.error("❌ Fetch products error:", error);
-      toast.error(error.response?.data?.message || "Failed to fetch products");
+      showNotification("Failed to fetch products", "error");
     } finally {
       setLoading(false);
     }
@@ -41,18 +86,20 @@ const ProductManagement = () => {
 
     try {
       const token = localStorage.getItem("userToken");
-      await axios.delete(
-        `${import.meta.env.VITE_BACKEND_URL}/api/products/${productId}`,
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/products/${productId}`,
         {
+          method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      if (!response.ok) throw new Error("Delete failed");
       
-      // Remove from local state
       setProducts(products.filter(p => p._id !== productId));
-      toast.success("Product deleted successfully!");
+      showNotification("Product deleted successfully!", "success");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete product");
+      showNotification("Failed to delete product", "error");
     }
   };
 
@@ -74,16 +121,63 @@ const ProductManagement = () => {
     return matchesSearch && matchesPrice;
   });
 
+  // Show loading screen while checking authentication
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access denied if not admin
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded-lg shadow-lg max-w-md">
+          <div className="h-16 w-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h2>
+          <p className="text-gray-600 mb-6">You need administrator privileges to access this page.</p>
+          <button
+            onClick={() => window.location.href = "/"}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            Return to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
+      {/* Notification */}
+      {notification && (
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+          notification.type === "success" ? "bg-green-500" : "bg-red-500"
+        } text-white max-w-md`}>
+          {notification.message}
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-3xl font-bold text-gray-800">Product Management</h1>
-        <Link
-          to="/admin/add-product"
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Product Management</h1>
+          <p className="text-sm text-gray-500 mt-1">Admin Dashboard</p>
+        </div>
+        <a
+          href="/admin/add-product"
           className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition flex items-center gap-2 font-medium shadow-md"
         >
-          <FaPlus /> Add New Product
-        </Link>
+          <span>+</span> Add New Product
+        </a>
       </div>
 
       {/* Stats Card */}
@@ -96,7 +190,9 @@ const ProductManagement = () => {
       <div className="bg-white p-4 rounded-lg shadow-md mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <input
               type="text"
               placeholder="Search by name, SKU, or ID"
@@ -121,7 +217,7 @@ const ProductManagement = () => {
       {/* Loading State */}
       {loading ? (
         <div className="flex justify-center items-center py-16 bg-white rounded-lg shadow-md">
-          <FaSpinner className="animate-spin h-8 w-8 text-blue-600" />
+          <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
           <span className="ml-3 text-gray-600 text-lg">Loading products...</span>
         </div>
       ) : (
@@ -177,17 +273,23 @@ const ProductManagement = () => {
                     </td>
                     <td className="p-4 border-b text-center">
                       <div className="flex justify-center gap-2">
-                        <Link
-                          to={`/admin/edit-product/${product._id}`}
+                        <a
+                          href={`/admin/edit-product/${product._id}`}
                           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition flex items-center gap-2 text-sm font-medium"
                         >
-                          <FaEdit /> Edit
-                        </Link>
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          Edit
+                        </a>
                         <button
                           onClick={() => handleDelete(product._id)}
                           className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition flex items-center gap-2 text-sm font-medium"
                         >
-                          <FaTrash /> Delete
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Delete
                         </button>
                       </div>
                     </td>
@@ -202,12 +304,12 @@ const ProductManagement = () => {
                         ? "No products match your filters"
                         : "No products found in database"}
                     </p>
-                    <Link
-                      to="/admin/add-product"
+                    <a
+                      href="/admin/add-product"
                       className="text-blue-600 hover:underline mt-2 inline-block"
                     >
                       Add your first product
-                    </Link>
+                    </a>
                   </td>
                 </tr>
               )}
@@ -215,8 +317,6 @@ const ProductManagement = () => {
           </table>
         </div>
       )}
-
-      <Toaster richColors position="top-right" />
     </div>
   );
 };

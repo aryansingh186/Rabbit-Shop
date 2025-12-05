@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { FaUsers, FaBox, FaShoppingBag, FaRupeeSign } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import { FaUsers, FaBox, FaShoppingBag, FaRupeeSign, FaLock } from "react-icons/fa";
 import axios from "axios";
 
 const AdminDashboard = () => {
@@ -11,10 +11,47 @@ const AdminDashboard = () => {
     totalRevenue: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchDashboardStats();
+    checkAdminAccess();
   }, []);
+
+  const checkAdminAccess = async () => {
+    try {
+      const token = localStorage.getItem("userToken");
+      
+      if (!token) {
+        setCheckingAuth(false);
+        setIsAdmin(false);
+        return;
+      }
+
+      // Verify admin role from backend
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/verify`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.role !== "admin") {
+        setIsAdmin(false);
+        setCheckingAuth(false);
+        return;
+      }
+
+      setIsAdmin(true);
+      setCheckingAuth(false);
+      fetchDashboardStats();
+    } catch (error) {
+      console.error("Auth check failed:", error);
+      setIsAdmin(false);
+      setCheckingAuth(false);
+    }
+  };
 
   const fetchDashboardStats = async () => {
     try {
@@ -93,6 +130,42 @@ const AdminDashboard = () => {
     red: "bg-red-500",
   };
 
+  // Show loading screen while checking authentication
+  if (checkingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-solid border-blue-600 border-t-transparent mb-4"></div>
+          <p className="text-gray-600 text-lg">Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access denied if not admin
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FaLock className="text-red-500 text-3xl" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h2>
+          <p className="text-gray-600 mb-6">
+            You need administrator privileges to access this page.
+          </p>
+          <button
+            onClick={() => navigate("/")}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium w-full"
+          >
+            Return to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading for dashboard data
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -101,6 +174,7 @@ const AdminDashboard = () => {
     );
   }
 
+  // Admin Dashboard Content
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-8">

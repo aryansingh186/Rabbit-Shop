@@ -12,26 +12,24 @@ const subscriberRoutes = require("./routes/SubscriberRoute");
 const AdminRoutes = require("./routes/AdminRoutes");
 const productAdminRoutes = require("./routes/ProductAdminRoute");
 const adminOrderRoutes = require("./routes/AdminOrderRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
 // JSON middleware
 app.use(express.json());
 
-
 app.use(
   cors({
     origin: [
-      
-      "https://rabbit-shop-h6jd.vercel.app",  
+      "https://rabbit-shop-h6jd.vercel.app",
+      "https://rabbit-shop-zeta.vercel.app", 
       "http://localhost:5173"                 
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
-
-
 
 connectDB();
 
@@ -40,6 +38,7 @@ app.get("/", (req, res) => {
 });
 
 // API Routes
+app.use("/api/auth", authRoutes); 
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
@@ -51,7 +50,6 @@ app.use("/api/subscribe", subscriberRoutes);
 app.use("/api/Admin/users", AdminRoutes);
 app.use("/api/admin/products", productAdminRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
-
 
 module.exports = app;
 

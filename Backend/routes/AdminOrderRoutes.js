@@ -22,7 +22,6 @@ router.get("/", protect, admin, async (req, res) => {
   }
 });
 
-// GET ORDER STATISTICS (Admin only) - MUST BE BEFORE /:id route
 router.get("/stats", protect, admin, async (req, res) => {
   try {
     const totalOrders = await Order.countDocuments();
@@ -67,7 +66,7 @@ router.get("/:id", protect, admin, async (req, res) => {
   }
 });
 
-// UPDATE ORDER STATUS (Admin only) - Generic status update
+// UPDATE ORDER STATUS (Admin only) 
 router.put("/:id", protect, admin, async (req, res) => {
   try {
     const { status } = req.body;
@@ -82,10 +81,10 @@ router.put("/:id", protect, admin, async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Update status
+
     order.status = status;
 
-    // Auto-update delivery fields if status is "Delivered"
+
     if (status === "Delivered") {
       order.isDelivered = true;
       order.deliveredAt = Date.now();
@@ -93,7 +92,6 @@ router.put("/:id", protect, admin, async (req, res) => {
 
     const updatedOrder = await order.save();
 
-    // Populate and return
     const populatedOrder = await Order.findById(updatedOrder._id)
       .populate("user", "name email")
       .populate("items.product", "name price images category brand");
@@ -108,7 +106,7 @@ router.put("/:id", protect, admin, async (req, res) => {
   }
 });
 
-// MARK ORDER AS DELIVERED (Admin only) - Keep for backward compatibility
+// MARK ORDER AS DELIVERED (Admin only) 
 router.put("/:id/deliver", protect, admin, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);

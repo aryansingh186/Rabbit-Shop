@@ -1,8 +1,6 @@
-// middleware/authMiddleware.js
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-// Protect routes - REQUIRED authentication
 const protect = async (req, res, next) => {
   let token;
 
@@ -24,7 +22,7 @@ const protect = async (req, res, next) => {
   }
 };
 
-// Optional authentication - Does NOT require token (for guest users)
+
 const optionalAuth = async (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
   
@@ -33,19 +31,19 @@ const optionalAuth = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select("-password");
     } catch (error) {
-      // Invalid token, continue as guest
+    
       console.log("Invalid token, continuing as guest");
       req.user = null;
     }
   } else {
-    // No token provided, continue as guest
+    
     req.user = null;
   }
   
   next();
 };
 
-// Admin middleware
+
 const admin = (req, res, next) => {
   if (req.user && req.user.role === "admin") {
     next();

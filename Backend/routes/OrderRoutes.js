@@ -4,9 +4,9 @@ const Order = require("../models/Order");
 
 const router = express.Router();
 
-/* =========================================================
-   USER ROUTES
-========================================================= */
+
+   // USER ROUTES
+
 
 // CREATE ORDER (Guest + Auth)
 router.post("/", optionalAuth, async (req, res) => {
@@ -73,9 +73,7 @@ router.get("/myorders", protect, async (req, res) => {
   }
 });
 
-/* =========================================================
-   ADMIN ROUTES — MUST BE ABOVE /:id
-========================================================= */
+
 
 // ORDER STATISTICS
 router.get("/stats", protect, admin, async (req, res) => {
@@ -157,9 +155,7 @@ router.delete("/:id", protect, admin, async (req, res) => {
   }
 });
 
-/* =========================================================
-   GET ORDER BY ID — MUST BE LAST
-========================================================= */
+
 
 router.get("/:id", optionalAuth, async (req, res) => {
   try {

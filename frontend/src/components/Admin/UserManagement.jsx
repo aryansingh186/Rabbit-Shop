@@ -26,10 +26,10 @@ const UserManagement = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log("✅ Users fetched:", response.data);
+      console.log(" Users fetched:", response.data);
       setUsers(response.data);
     } catch (error) {
-      console.error("❌ Fetch error:", error);
+      console.error(" Fetch error:", error);
       toast.error(error.response?.data?.message || "Failed to fetch users");
     } finally {
       setLoading(false);

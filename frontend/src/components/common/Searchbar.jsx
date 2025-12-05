@@ -47,7 +47,7 @@ const Searchbar = () => {
           product.brand?.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
-        setSearchResults(filtered.slice(0, 5)); // Show top 5 results
+        setSearchResults(filtered.slice(0, 5)); 
         setShowResults(true);
       } catch (error) {
         console.error('Search error:', error);
