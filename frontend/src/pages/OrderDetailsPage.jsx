@@ -104,13 +104,14 @@ const OrderDetailsPage = () => {
       <div className="mb-6">
         <h3 className="font-semibold mb-2 text-lg">Shipping Address</h3>
         <div className="bg-gray-50 p-4 rounded-lg">
-          <p className="font-medium">{order.shippingAddress?.fullName}</p>
-          <p className="text-gray-700">{order.shippingAddress?.address}</p>
-          <p className="text-gray-700">
-            {order.shippingAddress?.city}, {order.shippingAddress?.state} -{" "}
-            {order.shippingAddress?.postalCode}
-          </p>
-          <p className="text-gray-700">{order.shippingAddress?.country}</p>
+          <p className="font-medium">
+  {order.shippingAddress?.firstName} {order.shippingAddress?.lastName}
+</p>
+<p className="text-gray-700">{order.shippingAddress?.address}</p>
+<p className="text-gray-700">
+  {order.shippingAddress?.city} - {order.shippingAddress?.postalCode}
+</p>
+<p className="text-gray-700">{order.shippingAddress?.country}</p>
           <p className="text-gray-700 mt-2">
             <span className="font-medium">Phone:</span> {order.shippingAddress?.phone}
           </p>
@@ -133,12 +134,12 @@ const OrderDetailsPage = () => {
                 <div className="text-sm text-gray-600 mt-1">
                   {item.size && <span>Size: {item.size} </span>}
                   {item.color && <span>| Color: {item.color} </span>}
-                  <span>| Qty: {item.quantity}</span>
+                  <span>| Qty: {item.qty}</span>
                 </div>
                 <p className="text-sm text-gray-600 mt-1">₹{item.price} each</p>
               </div>
               <div className="text-right">
-                <p className="font-semibold">₹{item.price * item.quantity}</p>
+                <p className="font-semibold">₹{item.price * item.qty}</p>
               </div>
             </div>
           ))}

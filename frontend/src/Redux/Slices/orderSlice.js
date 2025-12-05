@@ -8,7 +8,7 @@ export const fetchUserOrders = createAsyncThunk(
   "orders/fetchUserOrders",
   async (userId, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("userToken")
       const response = await axios.get(
         `${BASE_URL}/api/orders/myorders`,
         {
@@ -31,7 +31,7 @@ export const fetchOrderDetails = createAsyncThunk(
   "orders/fetchOrderDetails",
   async (orderId, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("userToken")
       const response = await axios.get(
         `${BASE_URL}/api/orders/${orderId}`,
         {

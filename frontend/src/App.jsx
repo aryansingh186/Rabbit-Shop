@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { Toaster } from "sonner"; 
+import { restoreAuth } from "./Redux/Slices/authSlice";
 import "./index.css";
 
 // Layouts
@@ -18,25 +20,39 @@ import PaymentPage from "./components/cart/PaymentPage";
 import OrderDetailsPage from "./pages/OrderDetailsPage";
 import Productdetails from "./components/products/Productdetails";
 
-
 // Admin Pages
-import AdminHomePage from "./pages/AdminHomePage";
+import AdminDashboard from "./components/Admin/AdminDashboard"; // CHANGED: From AdminHomePage
 import UserManagement from "./components/Admin/UserManagement";
 import ProductManagement from "./components/Admin/ProductManagement";
+import AddProductPage from "./components/Admin/AddProductPage"; // NEW: Add Product
 import EditProductPage from "./components/Admin/EditProductPage";
 import OrderManagement from "./components/Admin/OrderManagement";
 
 // NotFound component
 const NotFound = () => (
-  <div className="text-center mt-20 text-2xl font-bold text-red-500">
-    404 - Page Not Found
+  <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+    <div className="text-9xl font-bold text-gray-300">404</div>
+    <h1 className="text-3xl font-bold text-gray-800 mt-4">Page Not Found</h1>
+    <p className="text-gray-600 mt-2">The page you're looking for doesn't exist.</p>
+    <a 
+      href="/" 
+      className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+    >
+      Go Back Home
+    </a>
   </div>
 );
 
 const App = () => {
+  const dispatch = useDispatch();
+
+  // Restore auth on app load
+  useEffect(() => {
+    dispatch(restoreAuth());
+  }, [dispatch]);
+
   return (
     <>
-      
       <Toaster position="top-right" richColors />
 
       <BrowserRouter>
@@ -51,22 +67,18 @@ const App = () => {
             <Route path="checkoutpage" element={<CheckOutPage />} />
             <Route path="payment" element={<PaymentPage />} />
             <Route path="order/:id" element={<OrderDetailsPage />} />
-
             <Route path="product/:id" element={<Productdetails />} />
-
-            {/*  for all user routes */}
             <Route path="*" element={<NotFound />} />
           </Route>
 
           {/* ADMIN ROUTES */}
           <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminHomePage />} />
+            <Route index element={<AdminDashboard />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="products" element={<ProductManagement />} />
+            <Route path="add-product" element={<AddProductPage />} /> 
             <Route path="edit-product/:id" element={<EditProductPage />} />
             <Route path="orders" element={<OrderManagement />} />
-
-            {/*  admin routes */}
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

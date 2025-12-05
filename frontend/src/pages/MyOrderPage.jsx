@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUserOrders } from "../Redux/Slices/orderSlice";
 
-
 const MyOrderPage = () => {
   const dispatch = useDispatch();
   const { orders, loading, error } = useSelector((state) => state.orders);
- const { user } = useSelector((state) => state.auth);
-const userInfo = user;
-
+  const { user, userInfo } = useSelector((state) => state.auth);
+  
+  // Use either user or userInfo (both should work now)
+  const currentUser = user || userInfo;
 
   useEffect(() => {
-    if (userInfo?._id) {
-      dispatch(fetchUserOrders(userInfo._id));
+    if (currentUser) {
+      dispatch(fetchUserOrders());
     }
-  }, [dispatch, userInfo]);
+  }, [dispatch, currentUser]);
 
   if (loading) {
     return <div className="p-4 text-center">Loading orders...</div>;
@@ -44,13 +44,13 @@ const userInfo = user;
           {orders.map((order) => (
             <Link
               key={order._id}
-              to={`/profile/orders/${order._id}`}
+              to={`/order/${order._id}`}  
               className="bg-white p-4 rounded-lg shadow-md block hover:shadow-lg transition"
             >
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-semibold text-sm text-gray-500">
-                    Order ID: {order._id}
+                    Order #{order.orderNumber || order._id.slice(-6)}
                   </p>
                   <p className="text-gray-600 text-sm mt-1">
                     {new Date(order.createdAt).toLocaleDateString("en-IN", {

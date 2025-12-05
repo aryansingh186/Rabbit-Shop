@@ -1,116 +1,178 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { toast } from "sonner";
 
-
-const MOCK_ORDERS = [
-  { id: 101, customer: "Aryan Singh", totalPrice: 1200, status: "Shipped" },
-  { id: 102, customer: "Rohit Kumar", totalPrice: 850, status: "Delivered" },
-  { id: 103, customer: "Anjali Verma", totalPrice: 450, status: "Cancel" },
-];
-
-const STATUS_OPTIONS = ["Shipped", "Delivered", "Cancel"];
-
 const OrderManagement = () => {
-  const [orders, setOrders] = useState(MOCK_ORDERS);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  const handleStatusChange = (orderId, newStatus) => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
-    toast.success(`Order ${orderId} status updated to ${newStatus}`);
+  useEffect(() => {
+    fetchAllOrders();
+  }, []);
+
+  const fetchAllOrders = async () => {
+    try {
+      const token = localStorage.getItem("userToken");
+      const res = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/orders/admin/all`,  
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setOrders(res.data);
+    } catch (error) {
+      console.error("Fetch orders error:", error);
+      toast.error("Failed to fetch orders");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesSearch =
-      order.customer.toLowerCase().includes(search.toLowerCase()) ||
-      order.id.toString().includes(search);
-    const matchesStatus = statusFilter ? order.status === statusFilter : true;
-    return matchesSearch && matchesStatus;
-  });
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const token = localStorage.getItem("userToken");
+      await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}/api/orders/${orderId}/status`,
+        { orderStatus: newStatus },  // ← Use orderStatus
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Order status updated!");
+      fetchAllOrders();
+    } catch (error) {
+      console.error("Update status error:", error);
+      toast.error("Failed to update status");
+    }
+  };
+
+  const deleteOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to delete this order?")) return;
+
+    try {
+      const token = localStorage.getItem("userToken");
+      await axios.delete(
+        `${import.meta.env.VITE_BACKEND_URL}/api/orders/${orderId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Order deleted!");
+      fetchAllOrders();
+    } catch (error) {
+      console.error("Delete order error:", error);
+      toast.error("Failed to delete order");
+    }
+  };
+
+  if (loading) return <div className="p-4">Loading orders...</div>;
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center">Order Management</h1>
-
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row justify-between mb-4 gap-4">
-        <input
-          type="text"
-          placeholder="Search by Order ID or Customer"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border p-2 rounded w-full md:w-1/2"
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="border p-2 rounded w-full md:w-1/4"
-        >
-          <option value="">All Status</option>
-          {STATUS_OPTIONS.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse text-left">
-          <thead className="bg-gray-100 text-gray-700 uppercase text-sm">
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-6">Order Management</h1>
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50">
             <tr>
-              <th className="p-3 border-b">Order ID</th>
-              <th className="p-3 border-b">Customer</th>
-              <th className="p-3 border-b">Total Price</th>
-              <th className="p-3 border-b">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Order #
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Customer
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Date
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Total
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Payment
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Actions
+              </th>
             </tr>
           </thead>
-          <tbody>
-            {filteredOrders.length > 0 ? (
-              filteredOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50 transition">
-                  <td className="p-3 border-b font-medium">{order.id}</td>
-                  <td className="p-3 border-b">{order.customer}</td>
-                  <td className="p-3 border-b">₹{order.totalPrice.toFixed(2)}</td>
-                  <td className="p-3 border-b">
-                    <select
-                      value={order.status}
-                      onChange={(e) =>
-                        handleStatusChange(order.id, e.target.value)
-                      }
-                      className={`border p-1 rounded ${
-                        order.status === "Delivered"
-                          ? "text-green-600"
-                          : order.status === "Shipped"
-                          ? "text-blue-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {STATUS_OPTIONS.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                </tr>
-              ))
-            ) : (
+          <tbody className="bg-white divide-y divide-gray-200">
+            {orders.length === 0 ? (
               <tr>
-                <td colSpan={4} className="text-center p-4 text-gray-500">
+                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
                   No orders found
                 </td>
               </tr>
+            ) : (
+              orders.map((order) => (
+                <tr key={order._id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    #{order.orderNumber || order._id.slice(-6)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {order.user?.name || "Guest"}
+                    <br />
+                    <span className="text-xs text-gray-500">
+                      {order.user?.email || order.guestId}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
+                    ₹{order.totalPrice}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {order.paymentMethod}
+                    <br />
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        order.paymentStatus === "Paid"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-orange-100 text-orange-700"
+                      }`}
+                    >
+                      {order.paymentStatus}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <select
+                      value={order.orderStatus}
+                      onChange={(e) =>
+                        updateOrderStatus(order._id, e.target.value)
+                      }
+                      className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Processing">Processing</option>
+                      <option value="Shipped">Shipped</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                    <button
+                      onClick={() => navigate(`/order/${order._id}`)}
+                      className="text-blue-600 hover:underline"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => deleteOrder(order._id)}
+                      className="text-red-600 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
       </div>
-
-      <Toaster richColors position="top-right" />
     </div>
   );
 };

@@ -18,7 +18,7 @@ export const fetchCart = createAsyncThunk(
   "cart/fetchCart",
   async ({ userId, guestId }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("userToken")
       const params = new URLSearchParams();
       if (guestId) params.append("guestId", guestId);
 
@@ -37,7 +37,7 @@ export const addToCart = createAsyncThunk(
   "cart/addToCart",
   async ({ productId, quantity, size, color, guestId, userId }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("userToken")
 
       const response = await axios.post(
         `${BASE_URL}/api/cart/add`,
@@ -65,7 +65,7 @@ export const updateCartItemQuantity = createAsyncThunk(
   "cart/updateCartItemQuantity",
   async ({ cartItemId, quantity, userId, guestId, size, color }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("userToken");
       const response = await axios.put(
         `${BASE_URL}/api/cart/update`,
         {
@@ -91,7 +91,7 @@ export const removeFromCart = createAsyncThunk(
   "cart/removeFromCart",
   async ({ cartItemId, userId, guestId, size, color }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("userToken")
       const response = await axios.delete(`${BASE_URL}/api/cart/remove`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         data: { productId: cartItemId, size, color, guestId },
@@ -108,7 +108,7 @@ export const mergeGuestCart = createAsyncThunk(
   "cart/mergeGuestCart",
   async ({ guestCartId }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("userToken");
       const response = await axios.post(
         `${BASE_URL}/api/cart/merge`,
         { guestCartId },

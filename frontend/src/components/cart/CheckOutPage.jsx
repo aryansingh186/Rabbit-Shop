@@ -20,6 +20,7 @@ const CheckOutPage = () => {
     phone: "",
   });
 
+  
   // Auth check
   useEffect(() => {
     if (!user && !guestId) {
