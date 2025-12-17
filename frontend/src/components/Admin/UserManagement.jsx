@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import { FaTrash, FaEdit, FaSpinner, FaSearch, FaUserShield, FaUser } from "react-icons/fa";
 import axios from "axios";
 
@@ -66,8 +66,6 @@ const UserManagement = () => {
 
   // Delete User
   const handleDelete = async (userId) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
-
     try {
       const token = localStorage.getItem("userToken");
       await axios.delete(
@@ -308,8 +306,6 @@ const UserManagement = () => {
           </div>
         </div>
       )}
-
-      <Toaster richColors position="top-right" />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { Toaster } from "sonner"; 
 import { restoreAuth } from "./Redux/Slices/authSlice";
@@ -21,10 +21,10 @@ import OrderDetailsPage from "./pages/OrderDetailsPage";
 import Productdetails from "./components/products/Productdetails";
 
 // Admin Pages
-import AdminDashboard from "./components/Admin/AdminDashboard"; // CHANGED: From AdminHomePage
+import AdminDashboard from "./components/Admin/AdminDashboard";
 import UserManagement from "./components/Admin/UserManagement";
 import ProductManagement from "./components/Admin/ProductManagement";
-import AddProductPage from "./components/Admin/AddProductPage"; // NEW: Add Product
+import AddProductPage from "./components/Admin/AddProductPage"; 
 import EditProductPage from "./components/Admin/EditProductPage";
 import OrderManagement from "./components/Admin/OrderManagement";
 
@@ -34,26 +34,30 @@ const NotFound = () => (
     <div className="text-9xl font-bold text-gray-300">404</div>
     <h1 className="text-3xl font-bold text-gray-800 mt-4">Page Not Found</h1>
     <p className="text-gray-600 mt-2">The page you're looking for doesn't exist.</p>
-    <a 
-      href="/" 
+    <Link 
+      to="/" 
       className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
     >
       Go Back Home
-    </a>
+    </Link>
   </div>
 );
 
 const App = () => {
   const dispatch = useDispatch();
 
-  // Restore auth on app load
+
   useEffect(() => {
     dispatch(restoreAuth());
   }, [dispatch]);
 
   return (
     <>
-      <Toaster position="top-right" richColors />
+    <Toaster 
+  position="top-center" 
+  richColors
+  closeButton   
+/>
 
       <BrowserRouter>
         <Routes>

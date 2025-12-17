@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast, Toaster } from "sonner";
 
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
@@ -7,13 +8,6 @@ const ProductManagement = () => {
   const [priceFilter, setPriceFilter] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [notification, setNotification] = useState(null);
-
-  // Show notification
-  const showNotification = (message, type = "success") => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
-  };
 
   // Check Admin Access
   useEffect(() => {
@@ -25,8 +19,7 @@ const ProductManagement = () => {
       const token = localStorage.getItem("userToken");
       
       if (!token) {
-        showNotification("Please login to access this page", "error");
-        // In real app: navigate to login
+        toast.error("Please login to access this page");
         setCheckingAuth(false);
         return;
       }
@@ -42,7 +35,7 @@ const ProductManagement = () => {
       const data = await response.json();
 
       if (!response.ok || data.role !== "admin") {
-        showNotification("Access Denied: Admin privileges required", "error");
+        toast.error("Access Denied: Admin privileges required");
         setCheckingAuth(false);
         return;
       }
@@ -52,7 +45,7 @@ const ProductManagement = () => {
       fetchProducts();
     } catch (error) {
       console.error("❌ Auth check failed:", error);
-      showNotification("Authentication failed", "error");
+      toast.error("Authentication failed");
       setCheckingAuth(false);
     }
   };
@@ -70,11 +63,11 @@ const ProductManagement = () => {
       );
       
       const data = await response.json();
-      console.log("✅ Products fetched:", data);
+      console.log("Products fetched:", data);
       setProducts(data);
     } catch (error) {
-      console.error("❌ Fetch products error:", error);
-      showNotification("Failed to fetch products", "error");
+      console.error("Fetch products error:", error);
+      toast.error("Failed to fetch products");
     } finally {
       setLoading(false);
     }
@@ -82,8 +75,6 @@ const ProductManagement = () => {
 
   // Delete Product
   const handleDelete = async (productId) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) return;
-
     try {
       const token = localStorage.getItem("userToken");
       const response = await fetch(
@@ -97,9 +88,9 @@ const ProductManagement = () => {
       if (!response.ok) throw new Error("Delete failed");
       
       setProducts(products.filter(p => p._id !== productId));
-      showNotification("Product deleted successfully!", "success");
+      toast.success("Product deleted successfully!");
     } catch (error) {
-      showNotification("Failed to delete product", "error");
+      toast.error("Failed to delete product");
     }
   };
 
@@ -158,15 +149,6 @@ const ProductManagement = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
-      {/* Notification */}
-      {notification && (
-        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
-          notification.type === "success" ? "bg-green-500" : "bg-red-500"
-        } text-white max-w-md`}>
-          {notification.message}
-        </div>
-      )}
-
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Product Management</h1>
@@ -317,6 +299,7 @@ const ProductManagement = () => {
           </table>
         </div>
       )}
+
     </div>
   );
 };

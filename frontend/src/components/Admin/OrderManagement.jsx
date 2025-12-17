@@ -35,7 +35,7 @@ const OrderManagement = () => {
       const token = localStorage.getItem("userToken");
       await axios.put(
         `${import.meta.env.VITE_BACKEND_URL}/api/orders/${orderId}/status`,
-        { orderStatus: newStatus },  // ← Use orderStatus
+        { orderStatus: newStatus },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -48,24 +48,22 @@ const OrderManagement = () => {
     }
   };
 
-  const deleteOrder = async (orderId) => {
-    if (!window.confirm("Are you sure you want to delete this order?")) return;
-
-    try {
-      const token = localStorage.getItem("userToken");
-      await axios.delete(
-        `${import.meta.env.VITE_BACKEND_URL}/api/orders/${orderId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      toast.success("Order deleted!");
-      fetchAllOrders();
-    } catch (error) {
-      console.error("Delete order error:", error);
-      toast.error("Failed to delete order");
-    }
-  };
+const deleteOrder = async (orderId) => {
+  try {
+    const token = localStorage.getItem("userToken");
+    await axios.delete(
+      `${import.meta.env.VITE_BACKEND_URL}/api/orders/${orderId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    toast.success("Order deleted!");
+    fetchAllOrders();
+  } catch (error) {
+    console.error("Delete order error:", error);
+    toast.error("Failed to delete order");
+  }
+};
 
   if (loading) return <div className="p-4">Loading orders...</div>;
 

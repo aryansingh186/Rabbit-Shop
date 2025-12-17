@@ -8,7 +8,7 @@ const MyOrderPage = () => {
   const { orders, loading, error } = useSelector((state) => state.orders);
   const { user, userInfo } = useSelector((state) => state.auth);
   
-  // Use either user or userInfo (both should work now)
+  
   const currentUser = user || userInfo;
 
   useEffect(() => {
